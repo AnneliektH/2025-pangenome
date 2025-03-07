@@ -1,0 +1,5 @@
+# lists of SRA numbers (metaG)
+pang: "./pangenome_species.csv"
+
+pang_org: "Holdemanella porci"
+pang_folder: "h_porci"
