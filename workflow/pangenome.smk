@@ -7,10 +7,10 @@ GTDB = '/group/ctbrowngrp/sourmash-db/gtdb-rs220/gtdb-reps-rs220-k21.zip'
 GTDB_TAX  = '/group/ctbrowngrp/sourmash-db/gtdb-rs220/gtdb-rs220.lineages.csv'
 SMASH_TAX = '/group/ctbrowngrp2/scratch/annie/2024-pigparadigm/results/MAGs/taxonomy_MAGs.forsmash.csv'
 OWN_MAG_SIG = '/group/ctbrowngrp2/scratch/annie/2024-pigparadigm/results/sourmash/sketches/MAGs.all.s100.zip'
-KSIZE = 31 
+KSIZE = 21 
 SCALED = 100
 
-OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pig-v-human/results/pangenome"
+OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/pangenome"
 MAG_LOCATION = "/group/ctbrowngrp2/scratch/annie/2024-pigparadigm/results/MAGs/genomes"
 
 # set configfile
@@ -29,9 +29,13 @@ fasta_own = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{sample}}.fasta"
 # final output 
 rule all:
     input:
-        expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.rankt.{KSIZE}.{SCALED}.csv"),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=fasta_gtdb),
+        # expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.rankt.{KSIZE}.{SCALED}.csv"),
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=fasta_gtdb),
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=fasta_own),
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/symlink.check"),
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.gtdb.zip")
         # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done"),
+
 
 
 # get lists of MAGs that are org of interest
@@ -106,7 +110,7 @@ rule prokka:
     shell:
         """ 
         prokka --kingdom Bacteria --outdir {params.output_folder} \
-        --norrna --notrna --prefix {wildcards.genome} \
+        --norrna --notrna --prefix {wildcards.genome} --force \
         --locustag {wildcards.genome} {input.fa_own} && touch {output.check}
         """
 
@@ -124,7 +128,7 @@ rule prokka_gtdb:
     shell:
         """ 
         prokka --kingdom Bacteria --outdir {params.output_folder} \
-        --norrna --notrna --prefix {wildcards.genome} \
+        --norrna --notrna --prefix {wildcards.genome} --force \
         --locustag {wildcards.genome} {input.fa_gtdb} && touch {output.check}
         """
 

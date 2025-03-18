@@ -5,8 +5,9 @@ import glob
 # set dbs and other params
 GTDB = '/group/ctbrowngrp/sourmash-db/gtdb-rs220/gtdb-reps-rs220-k21.zip'
 GTDB_TAX  = '/group/ctbrowngrp/sourmash-db/gtdb-rs220/gtdb-rs220.lineages.csv'
-ksize = [21, 31]
-scaled = [1,10,50,100,1000]
+ksize = [21]
+scaled =[100]
+#scaled = [1,10,50,100,1000]
 
 # result directory
 OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/pangenome"
@@ -22,7 +23,7 @@ fasta_gtdb = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{sample}}.fna.g
 # final output 
 rule all:
     input:
-        expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.rankt.{{ksize}}.{{scaled}}.csv", ksize=ksize, scaled=scaled),
+        # expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.rankt.{{ksize}}.{{scaled}}.csv", ksize=ksize, scaled=scaled),
         expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done"),
 
 # get lists of MAGs that are org of interest
@@ -81,7 +82,8 @@ rule prokka_gtdb:
 # run roary
 rule roary:
     input:
-        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=fasta_gtdb)
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=fasta_gtdb),
+        sig = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.gtdb.zip",
     output:
         check = f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done",
     conda: 
@@ -105,15 +107,19 @@ rule sourmash_pangenome:
     input: 
         sig_gtdb = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.gtdb.zip"
     output: 
-        pang = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.pang.{{ksize}}.{{scaled}}.sig.gz",
+        scaled_sig = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.{{ksize}}.{{scaled}}.zip",
+        pang = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.pang.{{ksize}}.{{scaled}}.zip",
         rankt = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.rankt.{{ksize}}.{{scaled}}.csv"
     conda: 
         "pangenomics_dev"
     threads: 1
     shell:
         """ 
-        sourmash scripts pangenome_merge {input.sig_gtdb} -k {wildcards.ksize} \
+        sourmash sig downsample {input.sig_gtdb} -k {wildcards.ksize} \
+        --scaled {wildcards.scaled} -o {output.scaled_sig} && \
+        sourmash scripts pangenome_merge {output.scaled_sig} -k {wildcards.ksize} \
         -o {output.pang} --scaled {wildcards.scaled} && \
-        sourmash scripts pangenome_ranktable {output.pang} -o {output.rankt} -k {wildcards.ksize}
+        sourmash scripts pangenome_ranktable {output.pang} -o {output.rankt} \
+        -k {wildcards.ksize} --scaled {wildcards.scaled}
         """
 
