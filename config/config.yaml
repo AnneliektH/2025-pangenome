@@ -1,8 +1,8 @@
 # lists of SRA numbers (metaG)
 pang: "./pangenome_species.csv"
 
-pang_org: "Gemmiger qucibialis"
-pang_folder: "g_qucibialis"
+pang_org: "Megasphaera elsdenii"
+pang_folder: "m_elsdenii"
 
 human_SRA: "../config/human_SRA.txt"
 pig_SRA: "../config/pig_SRA.txt"
