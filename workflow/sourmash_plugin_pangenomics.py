@@ -1,0 +1,1 @@
+/home/amhorst/mambaforge/envs/branchwater-skipmer/lib/python3.12/site-packages/sourmash_plugin_pangenomics.py

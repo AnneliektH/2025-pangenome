@@ -59,10 +59,9 @@ rule symlink_MAGs:
         """
 
 # dereplicate MAGs
-rule drep:
+rule drep_reference:
     input:
         sig = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.gtdb.zip",
-        #pangenome_species = pangenome_species,
     output:
         check = f"{OUTPUT_DIR}/{pang_name_out}/check/drep.check",
     conda: 
@@ -71,6 +70,26 @@ rule drep:
     params:
         input_folder=f"{OUTPUT_DIR}/{pang_name_out}/MAGs",
         output_folder=f"{OUTPUT_DIR}/{pang_name_out}/drep"
+    shell:
+        """ 
+        dRep dereplicate {params.output_folder} -p {threads} \
+        --ignoreGenomeQuality -pa 0.9 -sa 0.99 -nc 0.30 -cm larger \
+        -g {params.input_folder}/*genomic.fasta && \
+        touch {output.check}
+        """
+
+rule drep_all:
+    input:
+        sig = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.gtdb.zip",
+        check =  f"{OUTPUT_DIR}/{pang_name_out}/check/symlink.check",
+    output:
+        check = f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",
+    conda: 
+        "drep"
+    threads: 12
+    params:
+        input_folder=f"{OUTPUT_DIR}/{pang_name_out}/MAGs",
+        output_folder=f"{OUTPUT_DIR}/{pang_name_out}/drep_all"
     shell:
         """ 
         dRep dereplicate {params.output_folder} -p {threads} \

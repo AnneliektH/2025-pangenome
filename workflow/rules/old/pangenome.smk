@@ -162,7 +162,7 @@ rule sourmash_pangenome:
         pang = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.pang.{KSIZE}.{SCALED}.sig.gz",
         rankt = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.rankt.{KSIZE}.{SCALED}.csv"
     conda: 
-        "branchwater_skipmer"
+        "branchwater-skipmer"
     threads: 1
     shell:
         """ 

@@ -1,0 +1,10 @@
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135371.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135352.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135375.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135357.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135311.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135286.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135359.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135309.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135385.sig
+/group/ctbrowngrp/irber/data/wort-data/wort-sra/sigs/ERR1135362.sig

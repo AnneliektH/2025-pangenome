@@ -64,6 +64,8 @@ def main():
 #        if n > 100:
 #            break
         metag_mh = metag_ss.minhash.downsample(scaled=args.scaled)
+        n_overlap = query_minhash.contained_by(metag_mh)
+        print(f"{metag_name}: {n_overlap} overlapping hashes")
         if query_minhash.contained_by(metag_mh) > 0:
             metag_hashes = set(metag_mh.hashes)
             for hashval in hashes:

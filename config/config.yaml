@@ -1,8 +1,8 @@
 # lists of SRA numbers (metaG)
 pang: "./pangenome_species.csv"
 
-pang_org: "Megasphaera elsdenii"
-pang_folder: "m_elsdenii"
+pang_org: "Lactobacillus amylovorus"
+pang_folder: "l_amylovorus"
 
 human_SRA: "../config/human_SRA.txt"
 pig_SRA: "../config/pig_SRA.txt"
