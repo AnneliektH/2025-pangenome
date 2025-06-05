@@ -12,7 +12,7 @@ rule all:
                pang=pang,
                type=["core", "cloud"],
                label=["gtdb", "all"]),
-        expand("{output_dir}/{pang}/sourmash/{pang}.{type}.{label}.tr.x.human.dmp",
+        expand("{output_dir}/{pang}/sourmash/{pang}.{type}.{label}.tr.cmp.csv",
                output_dir=OUTPUT_DIR,
                pang=pang,
                type=["core", "cloud"],

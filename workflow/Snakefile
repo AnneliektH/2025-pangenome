@@ -19,8 +19,8 @@ pangenome_species = config["pang_org"]
 pang_name_out = config["pang_folder"]
 
 # set list of fasta files
-genomes = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/drep/dereplicated_genomes/{{sample}}.fasta").sample
-genomes_all = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/drep_all/dereplicated_genomes/{{sample}}.fasta").sample
+genomes = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{sample}}_genomic.fasta").sample
+genomes_all = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{sample}}.fasta").sample
 
 # include snakefiles
 include: "rules/1_collect_genomes.smk"
@@ -33,11 +33,11 @@ include: "rules/3_genes_to_hash.smk"
 rule all:
     input:
         # output files we need from drep (do these first)
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep.check",),
-        expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.cloud.tr.all.zip",),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.all.done",),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.all.done", genome=genomes_all),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=genomes),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done")
+        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep.check",),
+        # expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.cloud.tr.all.zip",),
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",),
+        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done",),
+        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.all.done", genome=genomes_all),
+        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=genomes_all),
+        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done")
 

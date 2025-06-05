@@ -1,8 +1,8 @@
 # lists of SRA numbers (metaG)
 pang: "./pangenome_species.csv"
 
-pang_org: "Lactobacillus amylovorus"
-pang_folder: "l_amylovorus"
+pang_org: "Bariatricus sp004560705"
+pang_folder: "b_sp004560705"
 
 human_SRA: "../config/human_SRA.txt"
 pig_SRA: "../config/pig_SRA.txt"

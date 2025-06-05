@@ -5,7 +5,7 @@ METAG = pd.read_csv("../config/sra.txt", usecols=[0], header=None).squeeze().tol
 
 rule all:
     input:
-        expand('../results/metag_signatures/{sample}.zip', sample=METAG,),
+        expand('../results/metag_signatures/{sample}.tr.zip', sample=METAG,),
 
 
 # Download SRA files
@@ -51,13 +51,13 @@ rule singlesketch:
         read_one="/group/ctbrowngrp2/amhorst/2025-pangenome/results/test_pipeline/protein_space/fasterq/{sample}/{sample}_1.fastq.gz",
         read_two="/group/ctbrowngrp2/amhorst/2025-pangenome/results/test_pipeline/protein_space/fasterq/{sample}/{sample}_2.fastq.gz",
     output:
-        sig = "../results/metag_signatures/{sample}.zip",
+        sig = "../results/metag_signatures/{sample}.tr.zip",
     conda: 
         "branchwater-skipmer"
     threads: 1
     shell: 
         """
-        sourmash sketch protein {input.read_one} {input.read_two} \
+        sourmash sketch translate {input.read_one} {input.read_two} \
         -p k=10,scaled=500,abund \
         --name {wildcards.sample} -o {output.sig}
         """

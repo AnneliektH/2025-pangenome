@@ -1,0 +1,51 @@
+import os
+import pandas as pd
+import glob
+
+OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/test_pipeline"
+
+# set configfile
+configfile: "../config/config.yaml"
+pangenome_species = config["pang_org"]
+pang_name_out = config["pang_folder"]
+
+# set list of fasta files
+drep_all_genomes = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/drep_all/dereplicated_genomes/{{sample}}.fasta").sample
+drep_ref_genomes = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/drep_ref/dereplicated_genomes/{{sample}}.fasta").sample
+
+
+# final output 
+rule all:
+    input:
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka_all_symlink.done", genome=drep_all_genomes),
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka_ref_symlink.done", genome=drep_ref_genomes)
+
+
+rule symlink_prokka_filtered_dir:
+    input:
+        src_dir = f"{OUTPUT_DIR}/{pang_name_out}/prokka/{{genome}}"
+    output:
+        done = f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka_ref_symlink.done"
+    params:
+        dest_dir = f"{OUTPUT_DIR}/{pang_name_out}/prokka_ref/{{genome}}"
+    shell:
+        """
+        mkdir -p $(dirname {params.dest_dir})
+        ln -sfn $(realpath {input.src_dir}) {params.dest_dir}
+        touch {output.done}
+        """
+
+rule symlink_prokka_all_dir:
+    input:
+        src_dir = f"{OUTPUT_DIR}/{pang_name_out}/prokka/{{genome}}"
+    output:
+        done = f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka_all_symlink.done"
+    params:
+        dest_dir = f"{OUTPUT_DIR}/{pang_name_out}/prokka_all/{{genome}}"
+    shell:
+        """
+        mkdir -p $(dirname {params.dest_dir})
+        ln -sfn $(realpath {input.src_dir}) {params.dest_dir}
+        touch {output.done}
+        """
+

@@ -1,6 +1,7 @@
 # run prokka
 rule prokka:
     input:
+        check = f"{OUTPUT_DIR}/{pang_name_out}/check/drep.check",
         genomes= f"{OUTPUT_DIR}/{pang_name_out}/drep/dereplicated_genomes/{{genome}}.fasta",
     output:
         check = f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done",
