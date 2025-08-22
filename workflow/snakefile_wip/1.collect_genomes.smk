@@ -3,18 +3,18 @@ import pandas as pd
 import glob
 
 # set dbs and other params
-GTDB = '/group/ctbrowngrp/sourmash-db/gtdb-rs226/gtdb-rs226.k21.sig.zip'
+GTDB = '/group/ctbrowngrp/sourmash-db/gtdb-rs226/gtdb-rs226.k31.sig.zip'
 GTDB_TAX  = '/group/ctbrowngrp/sourmash-db/gtdb-rs226/gtdb-rs226.lineages.csv'
-NEW_MAG_TAX = '../resources/250411_mag_taxonomy.tsv'
-OWN_MAG_SIG = '/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/sketches/MAGs.99.zip'
-KSIZE = 21 
+NEW_MAG_TAX = '../resources/250703_mag_taxonomy.tsv'
+OWN_MAG_SIG = '/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/sketches/MAGs.all_k31.rocksdb'
+KSIZE = 31 
 SCALED = 1000
 
-OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/test_pipeline"
-MAG_LOCATION = "/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/drep/drep.99/dereplicated_genomes"
+OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/pangenome"
+MAG_LOCATION = "/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/MAGs/all_genomes"
 
 # set configfile
-configfile: "../config/config.yaml"
+#configfile: "../config/config.yaml"
 pangenome_species = config["pang_org"]
 pang_name_out = config["pang_folder"]
 
@@ -38,7 +38,22 @@ rule all:
 
 # get lists of MAGs that are org of interest
 # 2 lists, one for GTDB and one for own MAGs
-rule get_mags_of_interest:
+# rule get_mags_of_interest:
+#     output:
+#         tsv = f"{OUTPUT_DIR}/{pang_name_out}/{pang_name_out}xownmags.tsv",
+#         csv_temp = temp(f"{OUTPUT_DIR}/{pang_name_out}/{pang_name_out}xgtdb_temp.csv"),
+#         csv = f"{OUTPUT_DIR}/{pang_name_out}/{pang_name_out}xgtdb.csv"
+#     conda: 
+#         "branchwater-skipmer"
+#     threads: 1
+#     shell:
+#         """ 
+#         (head -n 1 {NEW_MAG_TAX} && grep -e "{pangenome_species}" {NEW_MAG_TAX}) > {output.tsv} && \
+#         (head -n 1 {GTDB_TAX} && grep -e "{pangenome_species}" {GTDB_TAX}) > {output.csv_temp} && \
+#         python scripts/create_acc.py {output.csv_temp} {output.csv}
+#         """\
+
+rule get_mags_of_interest_v2:
     output:
         tsv = f"{OUTPUT_DIR}/{pang_name_out}/{pang_name_out}xownmags.tsv",
         csv_temp = temp(f"{OUTPUT_DIR}/{pang_name_out}/{pang_name_out}xgtdb_temp.csv"),
@@ -47,11 +62,12 @@ rule get_mags_of_interest:
         "branchwater-skipmer"
     threads: 1
     shell:
-        """ 
-        (head -n 1 {NEW_MAG_TAX} && grep -e "{pangenome_species}" {NEW_MAG_TAX}) > {output.tsv} && \
-        (head -n 1 {GTDB_TAX} && grep -e "{pangenome_species}" {GTDB_TAX}) > {output.csv_temp} && \
+        r"""
+        awk -F'\t' -v sp="{pangenome_species}" 'NR==1 || $NF == sp' {NEW_MAG_TAX} > {output.tsv} && \
+        awk -F',' -v sp="{pangenome_species}" 'NR==1 || $NF == sp' {GTDB_TAX} > {output.csv_temp} && \
         python scripts/create_acc.py {output.csv_temp} {output.csv}
         """
+
 
 # Now create 2 folders, for the MAGs. Once for only reference, one for all
 # download MAGs from NCBI with directsketch
@@ -71,8 +87,8 @@ rule directsketch:
         """ 
         sourmash scripts gbsketch  --keep-fasta --genomes-only \
         {input.csv} -o {output.sig} -p dna,k=21,k=31,scaled=100,abund \
-        -f {params.output_folder} -k -c {threads} \
-        --failed {output.failed_test} -r 1 --checksum-fail {output.fail_checksum}
+        -f {params.output_folder} -k -c {threads} -n 5 \
+        --failed {output.failed_test} -r 5 --checksum-fail {output.fail_checksum}
         for f in {params.output_folder}/*.fna.gz; do
             mv "$f" "${{f%.fna.gz}}.fasta"
         done

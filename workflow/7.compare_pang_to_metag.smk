@@ -15,8 +15,8 @@ rule all:
 
 rule calc_hash_presence_dna:
     input:
-        metags_pig = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/pig_sra.txt",
-        metags_human = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/human_sra.txt",
+        metags_pig = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/pig_sra2.txt",
+        metags_human = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/human_sra2.txt",
         rankt=f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{{fasta}}.rankt.csv"
     output:
         pig=f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{{fasta}}.x.pig.dmp",
@@ -30,8 +30,8 @@ rule calc_hash_presence_dna:
 
 rule calc_hash_presence_prot:
     input:
-        metags_pig = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/pig_sra_prot.txt",
-        metags_human = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/human_sra_prot.txt",
+        metags_pig = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/pig_sra_prot2.txt",
+        metags_human = "/group/ctbrowngrp2/amhorst/2025-pangenome/config/human_sra_prot2.txt",
         rankt=f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{{fasta}}.rankt.prot.csv"
     output:
         pig=f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{{fasta}}.prot.x.pig.dmp",

@@ -1,8 +1,8 @@
 # lists of SRA numbers (metaG)
 pang: "./pangenome_species.csv"
 
-pang_org: "Bariatricus sp004560705"
-pang_folder: "b_sp004560705"
+pang_org: "Limosilactobacillus reuteri"
+pang_folder: "l_reuteri"
 
 human_SRA: "../config/human_SRA.txt"
 pig_SRA: "../config/pig_SRA.txt"

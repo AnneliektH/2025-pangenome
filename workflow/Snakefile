@@ -1,43 +1,120 @@
-import os
 import pandas as pd
-import glob
+import glob, os
 
-# set dbs and other params
-GTDB = '/group/ctbrowngrp/sourmash-db/gtdb-rs226/gtdb-rs226.k21.sig.zip'
+
+GTDB = '/group/ctbrowngrp/sourmash-db/gtdb-rs226/gtdb-rs226.k31.sig.zip'
 GTDB_TAX  = '/group/ctbrowngrp/sourmash-db/gtdb-rs226/gtdb-rs226.lineages.csv'
-NEW_MAG_TAX = '../resources/250411_mag_taxonomy.tsv'
-OWN_MAG_SIG = '/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/sketches/MAGs.99.zip'
-KSIZE = 21 
+NEW_MAG_TAX = '../resources/250703_mag_taxonomy.tsv'
+OWN_MAG_SIG = '/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/sketches/MAGs.all_k31.rocksdb'
+KSIZE = 31 
 SCALED = 1000
+OUTPUT_DIR = "/group/ctbrowngrp2/amhorst/2025-pangenome/results/compare_specieslvl"
+MAG_LOCATION = "/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/MAGs/all_genomes"
 
-OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/test_pipeline"
-MAG_LOCATION = "/group/ctbrowngrp2/amhorst/2025-pigparadigm/results/drep/drep.99/dereplicated_genomes"
+# Load pang_org list
+pang_df = pd.read_csv("../resources/pang_list.csv")  # Only needs 'pang_org' column
 
-# set configfile
-configfile: "../config/config.yaml"
-pangenome_species = config["pang_org"]
-pang_name_out = config["pang_folder"]
+# Create pang_folder by replacing spaces with underscores
+pang_df["pang_folder"] = pang_df["pang_org"].str.replace(" ", "_")
 
-# set list of fasta files
-genomes = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{sample}}_genomic.fasta").sample
-genomes_all = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{sample}}.fasta").sample
+pang_folders = pang_df["pang_folder"].tolist()
 
-# include snakefiles
-include: "rules/1_collect_genomes.smk"
-include: "rules/2_roary.smk"
-include: "rules/2a_roary_all.smk"
-include: "rules/3_genes_to_hash.smk"
+def get_species(pang_folder):
+    return pang_df.loc[pang_df["pang_folder"] == pang_folder, "pang_org"].item()
 
 
-# final output 
 rule all:
     input:
-        # output files we need from drep (do these first)
-        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep.check",),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.cloud.tr.all.zip",),
-        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done",),
-        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.all.done", genome=genomes_all),
-        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=genomes_all),
-        #expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{pang_name_out}.roary.done")
+        expand(f"{OUTPUT_DIR}/{{pang_folder}}/check/symlink.check", pang_folder=pang_folders),
+        expand(f"{OUTPUT_DIR}/{{pang_folder}}/sourmash/{{pang_folder}}.gtdb.zip", pang_folder=pang_folders),
+        expand(f"{OUTPUT_DIR}/{{pang_folder}}/sourmash/{{pang_folder}}.sramags.zip", pang_folder=pang_folders), 
+
+
+# rule get_mags_of_interest:
+#     output:
+#         tsv = f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xownmags.tsv",
+#         csv_temp = temp(f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xgtdb_temp.csv"),
+#         csv = f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xgtdb.csv"
+#     conda:
+#         "branchwater-skipmer"
+#     threads: 1
+#     params:
+#         species=lambda w: get_species(w.pang_folder)
+#     shell:
+#         """
+#         (head -n 1 {NEW_MAG_TAX} && grep -e "{params.species}" {NEW_MAG_TAX}) > {output.tsv} && \
+#         (head -n 1 {GTDB_TAX} && grep -e "{params.species}" {GTDB_TAX}) > {output.csv_temp} && \
+#         python scripts/create_acc.py {output.csv_temp} {output.csv}
+#         """
+
+rule get_mags_of_interest_v2:
+    output:
+        tsv = f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xownmags.tsv",
+        csv_temp = temp(f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xgtdb_temp.csv"),
+        csv = f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xgtdb.csv"
+    conda:
+        "branchwater-skipmer"
+    threads: 1
+    params:
+        species=lambda w: get_species(w.pang_folder)
+    shell:
+        """
+        awk -F'\t' -v sp="{params.species}" 'NR==1 || $NF == sp' {NEW_MAG_TAX} > {output.tsv} && \
+        awk -F',' -v sp="{params.species}" 'NR==1 || $NF == "s__" sp' {GTDB_TAX} > {output.csv_temp} && \
+        python scripts/create_acc.py {output.csv_temp} {output.csv}
+        """
+
+
+rule directsketch:
+    input:
+        csv = f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xgtdb.csv"
+    output:
+        sig = f"{OUTPUT_DIR}/{{pang_folder}}/sourmash/{{pang_folder}}.gtdb.zip",
+        failed_test = f"{OUTPUT_DIR}/{{pang_folder}}/check/{{pang_folder}}.failed.csv",
+        fail_checksum= f"{OUTPUT_DIR}/{{pang_folder}}/check/{{pang_folder}}.checksum.failed.csv",
+    conda: "branchwater-skipmer"
+    threads: 32
+    params:
+        output_folder=lambda w: f"{OUTPUT_DIR}/{w.pang_folder}/MAGs"
+    shell:
+        """
+        sourmash scripts gbsketch --keep-fasta --genomes-only \
+        {input.csv} -o {output.sig} -p dna,k=21,k=31,scaled=1000,abund \
+        -f {params.output_folder} -k -c {threads} -n 5 \
+        --failed {output.failed_test} -r 5 --checksum-fail {output.fail_checksum}
+        for f in {params.output_folder}/*.fna.gz; do
+            mv "$f" "${{f%.fna.gz}}.fasta"
+        done
+        """
+
+rule symlink_MAGs:
+    input:
+        tsv = f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xownmags.tsv"
+    output:
+        check = f"{OUTPUT_DIR}/{{pang_folder}}/check/symlink.check"
+    conda: "branchwater-skipmer"
+    threads: 1
+    params:
+        output_folder=lambda w: f"{OUTPUT_DIR}/{w.pang_folder}/MAGs"
+    shell:
+        """
+        python scripts/create_symlink_args.py {input.tsv} {MAG_LOCATION} {params.output_folder} && \
+        touch {output.check}
+        """
+
+rule sketch_own_mags:
+    input:
+        tsv = f"{OUTPUT_DIR}/{{pang_folder}}/{{pang_folder}}xownmags.tsv"
+    output:
+        sig = f"{OUTPUT_DIR}/{{pang_folder}}/sourmash/{{pang_folder}}.sramags.zip"
+    conda: "branchwater-skipmer"
+    threads: 1
+    params:
+        in_folder=lambda w: f"{OUTPUT_DIR}/{w.pang_folder}/MAGs"
+    shell:
+        """
+        sourmash sketch dna {params.in_folder}/AtH*.fasta \
+        -p k=21,k=31,scaled=1000 \
+        -o {output.sig}
+        """
 

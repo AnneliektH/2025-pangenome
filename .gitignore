@@ -2,3 +2,5 @@ results/
 resources/
 workflow/.snakemake/
 workflow/sourmash_plugin_pangenomics
+genome_collection/
+hash_to_gene/

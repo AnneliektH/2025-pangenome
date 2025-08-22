@@ -2,10 +2,10 @@ import os
 import pandas as pd
 import glob
 
-OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/test_pipeline"
+OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/pangenome"
 
 # set configfile
-configfile: "../config/config.yaml"
+#configfile: "../config/config.yaml"
 pangenome_species = config["pang_org"]
 pang_name_out = config["pang_folder"]
 

@@ -8,8 +8,7 @@ OUTPUT_DIR ="/group/ctbrowngrp2/amhorst/2025-pangenome/results/pangenome"
 # set configfile
 #configfile: "../config/config.yaml"
 #pangenome_species = config["pang_org"]
-# pang_name_out = config["pang_folder"]
-pang_name_out ="Catenibacterium_mitsuokai" 
+pang_name_out = config["pang_folder"]
 
 # set list of fasta files
 genomes = glob_wildcards(f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{sample}}.fasta").sample
@@ -19,13 +18,12 @@ rule all:
     input:
         expand(f"{OUTPUT_DIR}/{pang_name_out}/check/{{genome}}.prokka.done", genome=genomes),
         # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep.check",),
-        # expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",),
+        expand(f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",),
 
 
 # run prokka on all of them 
 rule prokka_all:
     input:
-        sig = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.gtdb.zip",
         check = f"{OUTPUT_DIR}/{pang_name_out}/check/symlink.check",
         genomes= f"{OUTPUT_DIR}/{pang_name_out}/MAGs/{{genome}}.fasta",
     output:
@@ -43,24 +41,23 @@ rule prokka_all:
         """
 
 
-# rule drep_all:
-#     input:
-#         sig = f"{OUTPUT_DIR}/{pang_name_out}/sourmash/{pang_name_out}.gtdb.zip",
-#         check =  f"{OUTPUT_DIR}/{pang_name_out}/check/symlink.check",
-#     output:
-#         check = f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",
-#     conda: 
-#         "drep"
-#     params:
-#         input_folder=f"{OUTPUT_DIR}/{pang_name_out}/MAGs",
-#         output_folder=f"{OUTPUT_DIR}/{pang_name_out}/drep_all"
-#     shell:
-#         """ 
-#         dRep dereplicate {params.output_folder} -p {threads} \
-#         --ignoreGenomeQuality -pa 0.99 -sa 0.99 -nc 0.6 -cm larger \
-#         -g {params.input_folder}/*.fasta && \
-#         touch {output.check}
-#         """
+rule drep_all:
+    input:
+        check =  f"{OUTPUT_DIR}/{pang_name_out}/check/symlink.check",
+    output:
+        check = f"{OUTPUT_DIR}/{pang_name_out}/check/drep_all.check",
+    conda: 
+        "drep"
+    params:
+        input_folder=f"{OUTPUT_DIR}/{pang_name_out}/MAGs",
+        output_folder=f"{OUTPUT_DIR}/{pang_name_out}/drep_all"
+    shell:
+        """ 
+        dRep dereplicate {params.output_folder} -p {threads} \
+        --ignoreGenomeQuality -pa 0.99 -sa 0.99 -nc 0.6 -cm larger \
+        -g {params.input_folder}/*.fasta && \
+        touch {output.check}
+        """
 
 
 # # dereplicate MAGs
